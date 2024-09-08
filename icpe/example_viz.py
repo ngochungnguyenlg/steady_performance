@@ -65,7 +65,7 @@ class Benchmark:
     def point_out_steady(self, fork_idx, visualize = config["visualize"], min_p=4, max_p=1000, min_size=100, jump=100, max_iterator=200, method='l2'):
         mean = np.mean(self.get_measurements()[fork_idx])
         exponent_10 = math.floor(math.log10(mean))
-        fork_data= np.array(self.get_measurements()[fork_idx])*((10**2)/(10**exponent_10))
+        fork_data= np.array(self.get_measurements()[fork_idx])*(10/(10**exponent_10))
         fil_fork_data = filter_outliers(fork_data, window_size=200)
         fil_fork_data=fil_fork_data.flatten()
         if len(fil_fork_data) == 0:
@@ -160,7 +160,7 @@ class Benchmark:
         store_is_steady = []
         for i in range(num):
             length = len(data[i])
-            stable_range, is_consistent, steady = self.point_out_steady(i, visualize=True, min_size=200, jump=5, max_iterator=20)
+            stable_range, is_consistent, steady = self.point_out_steady(i, visualize=True, min_size=200, max_p=10**5, jump=5, max_iterator=20)
             stable_percentage, start_stable_point = cal_per_fork(stable_range, length)
             store_stable_percent.append(stable_percentage)
             store_start_stable_point.append(start_stable_point)
@@ -175,7 +175,7 @@ class Benchmark:
         print("analysing file {} thread {} starting".format(fidx,index))
         data = self.get_measurements()
         length = len(data[index])
-        stable_range, is_consistent, steady = self.point_out_steady(index, visualize=config["visualize"], min_size=200, jump=5, max_iterator=20)
+        stable_range, is_consistent, steady = self.point_out_steady(index, visualize=config["visualize"], min_size=200, max_p=10**5, jump=5, max_iterator=20)
         stable_percentage, start_stable_point = self.cal_per_fork(stable_range, length)
         print("analysing file {} thread {} end".format(fidx,index))
         return stable_percentage, sum(data[index][0:start_stable_point]), is_consistent, steady
