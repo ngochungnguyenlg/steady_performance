@@ -19,7 +19,7 @@ from typing import List, Tuple
 from functools import partial
 import math
 from icpe.config import config
-
+from icpe.crops import *
 
 figs = "./figs"
 class Benchmark:
@@ -70,33 +70,40 @@ class Benchmark:
         fil_fork_data=fil_fork_data.flatten()
         if len(fil_fork_data) == 0:
             return [], 0, 0
-        segmentations = crops_algorithm(fil_fork_data, min_p, max_p, method=method, min_size=min_size, jump=jump, max_iterator=max_iterator)
+        # segmentations = crops_algorithm(fil_fork_data, min_p, max_p, method=method, min_size=min_size, jump=jump, max_iterator=max_iterator)
+        segmentations = pelt_crops(data=fil_fork_data, beta_min=min_p, beta_max=max_p, max_iterations=max_iterator, jump=jump, min_size=min_size, method=method)
         change_points = []
         n_change_points = []
         costs = []
-        algo = rpt.Pelt(model=method).fit(fil_fork_data)
+        algo = rpt.Pelt(model=method, min_size=min_size, jump=jump).fit(fil_fork_data)
         total_point = 30
-        penalties = [*segmentations]
-        penalties.remove(max_p)
         
-        penalties = list(np.unique(np.array(penalties)))
-        
-        if len(segmentations) <= total_point and len(penalties)>1:
-            penalties = np.linspace(min_p, max(penalties), total_point-len(segmentations))
-        
-        for penalty in penalties:
-            result = algo.predict(pen=penalty)
-            change_points += result
-            n_change_points.append(len(result)-1)
-            costs.append(calculate_segs_cost(result, penalty=penalty, model=algo))
+        if visualize == True:
+            penalties = [*segmentations]
+            if max_p in penalties:
+                penalties.remove(max_p)
             
-        combined = list(zip(penalties, n_change_points, costs))
+            penalties = list(np.unique(np.array(penalties)))
+            if len(segmentations) <= total_point and len(penalties)>1:
+                penalties = np.linspace(min_p, max(penalties), total_point-len(penalties))
+            
+            for penalty in penalties:
+                result = algo.predict(pen=penalty)
+                change_points += result
+                n_change_points.append(len(result)-1)
+                costs.append(calculate_segs_cost(result, penalty=penalty, model=algo))
+        else:
+            penalties = [*segmentations]
+            n_change_points = []
+            for pen in penalties:
+                n_change_points.append(len(segmentations[pen]))
+            
+        combined = list(zip(penalties, n_change_points))
         combined_sorted = sorted(combined, key=lambda x: x[0])
                 
-        sorted_penalties, sorted_n_change_points, costs = zip(*combined_sorted)
+        sorted_penalties, sorted_n_change_points = zip(*combined_sorted)
         
         sorted_penalties = np.array(sorted_penalties)
-        costs = np.array(costs)
         sorted_n_change_points = np.array(sorted_n_change_points)
         elbow = find_elbow(sorted_penalties, sorted_n_change_points) #penalty
         if elbow == None:
@@ -104,7 +111,6 @@ class Benchmark:
                     
         numper_change_point_optimize = len(algo.predict(pen=elbow))-1
         #using elbow to find best segments
-        algo = rpt.Pelt(model=method, min_size=200).fit(fil_fork_data)
         segs = algo.predict(pen=elbow)
         stable = find_stable_segment(fil_fork_data, segs)
         
@@ -132,17 +138,12 @@ class Benchmark:
             plt.close()
             plt.plot(fil_fork_data)
             
-            same_points = []
-            for beta, segments in segmentations.items():
-                for cp in segments:
-                    if cp not in same_points:
-                        same_points.append(cp)
-                        plt.axvline(x=cp, color='r', linestyle='--')
+            for cp in segs:
+                plt.axvline(x=cp, color='r', linestyle='--')
             
             plt.savefig(figs + "/"+ str(fork_idx)+"_fig1.png", dpi=300)
             plt.close()
             self.lock.release()
-            
         return stable, isconsitent, stable_seg_n > 1
     
     def steady_percentage(self, num):
@@ -304,12 +305,16 @@ def analysis_data(data_dir, resvision, action, num_worker, range_data=[]):
     )
     if action == "example":
         random_viz(data_dir, resvision)
+    elif action == "debug":
+        benchmarks = get_benchmarks(data_dir)[range_data[0]:range_data[1]]
+        benchmarks[0].steady_percentage(1)
     else:
         if range_data!=None:
             benchmarks = get_benchmarks(data_dir)[range_data[0]:range_data[1]]
         else:
             benchmarks = get_benchmarks(data_dir)
         main_processes(benchmarks, num_worker)
+    
             
 if __name__ == "__main__":
     DATA_DIR = './icpe/timeseries'

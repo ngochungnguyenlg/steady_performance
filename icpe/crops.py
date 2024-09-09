@@ -9,9 +9,11 @@ import sys
 def pelt_for_crops(beta: float, algo : Pelt) -> Tuple[float, List[float]]:
     result = algo.predict(pen=beta)
     sum_cost = 0
-    for idx, seg in enumerate(result, start=1):
-        if idx < len(result):
-            sum_cost += algo.cost.error(result[idx-1], result[idx]-1)
+    result_ = [0]+result.copy()
+    for idx, seg in enumerate(result_, start=1):
+        if idx < len(result_):
+            sum_cost += algo.cost.error(result_[idx-1], result_[idx]-1)
+    
     return sum_cost, result
 
 class CropsClass:
@@ -129,11 +131,18 @@ def check_crops_arguments(method, beta_min, beta_max, max_iterations):
 def pelt_crops(data, beta_min, beta_max, max_iterations=20, jump= 5, min_size =2, method='l1'):
     algo = Pelt(model=method, min_size=min_size, jump=jump).fit(data)
     result = crops(pelt_for_crops, beta_min, beta_max, max_iterations, algo)
-    print_summary(result)
+    # print_summary(result)
     data = np.array(data)
-    df_data = pd.DataFrame({'x': range(len(data)), 'y': data})
-    plot(result, data=df_data)
-    return result, df_data
+    # df_data = pd.DataFrame({'x': range(len(data)), 'y': data})
+    # plot(result, data=df_data)
+    df = segmentations(result)
+    df_dict = df.copy().transpose()
+    df_dict.columns = df_dict.iloc[0]
+    df_dict = df_dict.drop(index = df_dict.index[0:4])
+    df_dict = df_dict.loc[:, ~df_dict.columns.duplicated()]
+    df_dict = df_dict.to_dict(orient='list')
+    cleaned_dict = {k: [v for v in lst if pd.notna(v)] for k, lst in df_dict.items()}
+    return cleaned_dict
 if __name__ == "__main__":
     N=100
     np.random.seed(1)
