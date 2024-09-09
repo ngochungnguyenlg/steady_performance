@@ -141,7 +141,7 @@ class Benchmark:
             plt.savefig(figs + "/"+ str(fork_idx)+"_fig1.png", dpi=300)
             plt.close()
             self.lock.release()
-        return stable, isconsitent, stable_seg_n > 1
+        return stable, isconsitent, len(fil_fork_data)
     
     def steady_percentage(self, num):
         def cal_per_fork(stable_list, length):
@@ -154,29 +154,35 @@ class Benchmark:
         data  = self.get_measurements()
         store_stable_percent= []
         store_start_stable_point= []
-        store_is_consistent = []
         store_is_steady = []
+        store_is_last = []
         for i in range(num):
-            length = len(data[i])
-            stable_range, is_consistent, steady = self.point_out_steady(i, visualize=True, min_size=200, max_p=10**5, jump=5, max_iterator=20)
+            # length = len(data[i])
+            stable_range, is_consistent, length = self.point_out_steady(i, visualize=True, min_size=200, max_p=10**5, jump=5, max_iterator=20)
             stable_percentage, start_stable_point = cal_per_fork(stable_range, length)
             store_stable_percent.append(stable_percentage)
             store_start_stable_point.append(start_stable_point)
-            store_is_consistent.append(is_consistent)
-            store_is_steady.append(steady)
+            store_is_steady.append(is_consistent)
+            is_last = False
+            if stable_range[0][1]==length:
+                is_last = True
+            store_is_last.append(is_last)
         
         average_percent =  np.mean(store_stable_percent) 
         average_start_point=  np.mean(store_start_stable_point) 
-        return average_percent, average_start_point, is_consistent, steady
+        return average_percent, average_start_point, store_is_steady, store_is_last
 
     def process_task(self, index: int, fidx) -> Tuple[float, int]:
         print("analysing file {} thread {} starting".format(fidx,index))
         data = self.get_measurements()
-        length = len(data[index])
-        stable_range, is_consistent, steady = self.point_out_steady(index, visualize=config["visualize"], min_size=200, max_p=10**5, jump=5, max_iterator=20)
+        # length = len(data[index])
+        stable_range, is_steady, length = self.point_out_steady(index, visualize=config["visualize"], min_size=200, max_p=10**5, jump=5, max_iterator=20)
         stable_percentage, start_stable_point = self.cal_per_fork(stable_range, length)
-        print("analysing file {} thread {} end".format(fidx,index))
-        return stable_percentage, sum(data[index][0:start_stable_point]), is_consistent, steady
+        is_last = False
+        if stable_range[0][1]==length:
+            is_last = True
+        print("analysing file {} thread {} end, is_last {}".format(fidx,index, is_last))
+        return stable_percentage, sum(data[index][0:start_stable_point]), is_steady, is_last
 
     def cal_per_fork(self, stable_list, length):
         stable_length = 0
@@ -190,21 +196,21 @@ class Benchmark:
     def steady_percentage_by_mul_thread(self, num, file_idx):
         store_stable_percent = []
         store_start_stable_point = []
-        store_is_consistent = []
         store_is_steady = []
+        store_is_last = []
 
         process_task_with_file_idx = partial(self.process_task, fidx=file_idx)
         with  multiprocessing.pool.ThreadPool(processes=num) as pool:
             results = pool.map(process_task_with_file_idx, range(num))
-        for stable_percentage, start_stable_point, is_consistent, is_steady in results:
+        for stable_percentage, start_stable_point, is_steady, is_last in results:
             store_stable_percent.append(stable_percentage)
             store_start_stable_point.append(start_stable_point)
-            store_is_consistent.append(is_consistent)
             store_is_steady.append(is_steady)
+            store_is_last.append(is_last)
 
         # average_percent = np.mean(store_stable_percent)
         # average_start_point = np.mean(store_start_stable_point)
-        return store_stable_percent, store_start_stable_point, store_is_consistent, store_is_steady
+        return store_stable_percent, store_start_stable_point, store_is_last, store_is_steady
 
         
 def get_benchmarks(data_dir):

@@ -206,45 +206,46 @@ def find_stable_segment(data, segments):
     stable_segments = []
     unstable_segments = []
     segments = sorted(segments)
-    if len(segments) < 2:
-        return stable_segments
+
+    print(segments)
+    if len(segments) <2:
+        return [(0, segments[0])], segments[0] >500
+    elif len(segments)==2:
+        return [(segments[0], segments[1])], abs(segments[1]-segments[0])>500
     if config["using_last_stable_segmet"]==False:
         max_length_seg = -float("inf")
         max_length_seg_idx = -1
         #ignore the first segnment
-        for idx in range(1,len(segments)-1):
-            if segments[idx] - segments[idx+1] > max_length_seg:
-                max_length_seg = segments[idx+1] - segments[idx]
+        for idx in range(0,len(segments)-1):
+            if abs(segments[idx+1] - segments[idx]) > max_length_seg:
+                max_length_seg = abs(segments[idx+1] - segments[idx])
                 max_length_seg_idx = idx
         mean, last_ci = calculate_mean_and_ci(data[segments[max_length_seg_idx]:segments[max_length_seg_idx+1]])
-        stable_segments.append((segments[max_length_seg_idx-1], segments[max_length_seg_idx+1]))   
+        stable_segments.append((segments[max_length_seg_idx], segments[max_length_seg_idx+1]))   
     else:
         mean, last_ci = calculate_mean_and_ci(data[segments[-2]:segments[-1]])
+
     
-    start_stabel_range = 0
     end_stabel_range = 0
     for i in range(len(segments) - 2, -1, -1):
         segment_data = data[segments[i]:segments[i+1]]
         last_mean, ci = calculate_mean_and_ci(segment_data)
         
         if is_within_tolerance(mean, ci, last_mean,last_ci):
-            stable_segments.append((segments[i], segments[i+1]))
-            start_stabel_range = segments[i]
-            if end_stabel_range < segments[i+1]:
-                end_stabel_range = segments[i+1]
+            if (segments[i], segments[i+1]) not in stable_segments:
+                stable_segments.append((segments[i], segments[i+1]))
+                if end_stabel_range < segments[i+1]:
+                    end_stabel_range = segments[i+1]
         else:
             unstable_segments.append((segments[i], segments[i+1]))
-    is_consistent = True
-    if  max(segments)!=end_stabel_range and len(stable_segments)>0:
-        #the final segment is not stable
-        is_consistent = False
-    if start_stabel_range != end_stabel_range and is_consistent:
-        for seg in unstable_segments:
-            if (seg[0] < end_stabel_range and seg[0] > start_stabel_range) :
-                is_consistent = False
+    is_steady = True
+    if abs(segments[-1]-segments[-2]) < 500 and  config["using_last_stable_segmet"]:
+        is_steady=False
+    elif  not config["using_last_stable_segmet"] and abs(segments[max_length_seg_idx+1]-segments[max_length_seg_idx])<500:
+        is_steady=False
 
     stable_segments = sorted(stable_segments, key=lambda x: x[0], reverse=True)
-    return stable_segments, is_consistent
+    return stable_segments, is_steady
 
 if __name__ == "__main__":
     np.random.seed(0)

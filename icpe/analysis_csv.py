@@ -74,10 +74,10 @@ class survey_result:
             start_point = []
             no_steady_fork = 0
             for cel in method_result["Steady Percentage"]:
-                steady_percentage, steady_point, is_consistent, has_steady =  self.detach_rq1_result_cell(cel)
-                if False in is_consistent:
+                steady_percentage, steady_point, is_steadies, is_lasts =  self.detach_rq1_result_cell(cel)
+                if False in is_steadies:
                     benchmark_inconsistent += 1
-                for r in is_consistent:
+                for r in is_steadies:
                     if r==False:
                         no_steady_fork += 1
                 start_point+= steady_point
