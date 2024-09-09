@@ -210,7 +210,7 @@ class Benchmark:
 
         # average_percent = np.mean(store_stable_percent)
         # average_start_point = np.mean(store_start_stable_point)
-        return store_stable_percent, store_start_stable_point, store_is_last, store_is_steady
+        return store_stable_percent, store_start_stable_point, store_is_steady, store_is_last
 
         
 def get_benchmarks(data_dir):
@@ -311,7 +311,8 @@ def analysis_data(data_dir, resvision, action, num_worker, range_data=[]):
         random_viz(data_dir, resvision)
     elif action == "debug":
         benchmarks = get_benchmarks(data_dir)[range_data[0]:range_data[1]]
-        benchmarks[0].steady_percentage(1)
+        for ben in benchmarks:
+            ben.steady_percentage(10)
     else:
         if range_data!=None:
             benchmarks = get_benchmarks(data_dir)[range_data[0]:range_data[1]]
