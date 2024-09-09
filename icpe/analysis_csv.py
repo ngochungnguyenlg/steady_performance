@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
-import scienceplots
+# import scienceplots
 from icpe.config import config
 # matplotlib.rcParams['font.size']=12.5
-plt.style.use(["science", "ieee"])
+# plt.style.use(["science", "ieee"])
 import matplotlib
 matplotlib.rcParams.update({'font.size': 12})
 

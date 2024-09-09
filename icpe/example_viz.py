@@ -180,6 +180,7 @@ class Benchmark:
 
     def cal_per_fork(self, stable_list, length):
         stable_length = 0
+        print(stable_list, length)
         for seg in stable_list:
             stable_length += seg[1] - seg[0] + 1
         start_point = stable_list[-1][0]

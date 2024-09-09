@@ -23,6 +23,7 @@ class CropsClass:
         self.data = algo
 
 def segmentations(crops: CropsClass) -> Union[pd.DataFrame, None]:
+    print("Analysis Crops object starting ...")
     segs = []
     betas = []
     for beta in crops.betas:
@@ -47,6 +48,7 @@ def segmentations(crops: CropsClass) -> Union[pd.DataFrame, None]:
     })
 
     df = pd.concat([df, pd.DataFrame(mat, columns=col_names)], axis=1)
+    print("Analysis Crops object ending ...")
     return df
 
 def print_summary(crops: CropsClass):
@@ -91,19 +93,22 @@ def crops(method: Callable[[float], Tuple[float, List[float]]],
             sys.stdout.write("\rProcessing... Remaining iterations: {}".format(n))
             sys.stdout.flush()
             n -= 1
-            beta = list(beta_star)[-1]
-            beta_0, beta_1 = beta
-            Qm_0, segs_0 = f(beta_0, algo)
-            Qm_1, segs_1 = f(beta_1, algo)
-            m_0 = len(segs_0)
-            m_1 = len(segs_1)
-            if m_0 > m_1 + 1:
-                beta_int = (Qm_1 - Qm_0) / (m_0 - m_1)
-                Qm_int, m_int = f(beta_int, algo)
-                if m_int != m_1:
-                    beta_star = beta_star.union({(beta_int, beta_1), (beta_0, beta_int)})
-            beta_star = beta_star.difference({beta})
-            res.add(beta)
+            try:
+                beta = list(beta_star)[-1]
+                beta_0, beta_1 = beta
+                Qm_0, segs_0 = f(beta_0, algo)
+                Qm_1, segs_1 = f(beta_1, algo)
+                m_0 = len(segs_0)
+                m_1 = len(segs_1)
+                if m_0 > m_1 + 1:
+                    beta_int = (Qm_1 - Qm_0) / (m_0 - m_1)
+                    Qm_int, m_int = f(beta_int, algo)
+                    if m_int != m_1:
+                        beta_star = beta_star.union({(beta_int, beta_1), (beta_0, beta_int)})
+                beta_star = beta_star.difference({beta})
+                res.add(beta)
+            except Exception as e:
+                print("An error happen with {}".format(e))
         sys.stdout.write("\rDone! Processing completed.                    \n")
         sys.stdout.flush()
         return res
@@ -136,6 +141,10 @@ def pelt_crops(data, beta_min, beta_max, max_iterations=20, jump= 5, min_size =2
     # df_data = pd.DataFrame({'x': range(len(data)), 'y': data})
     # plot(result, data=df_data)
     df = segmentations(result)
+    if str(type(df)).find("None")!=-1:
+        pen = 15*np.log10(len(data))
+        df = {pen:[0,len(data)]}
+        return df
     df_dict = df.copy().transpose()
     df_dict.columns = df_dict.iloc[0]
     df_dict = df_dict.drop(index = df_dict.index[0:4])

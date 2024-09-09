@@ -205,6 +205,7 @@ def find_stable_segment(data, segments):
     """Find stable segments based on the 5% tolerance on the CI of the mean."""
     stable_segments = []
     unstable_segments = []
+    segments = sorted(segments)
     if len(segments) < 2:
         return stable_segments
     if config["using_last_stable_segmet"]==False:
@@ -213,9 +214,10 @@ def find_stable_segment(data, segments):
         #ignore the first segnment
         for idx in range(1,len(segments)-1):
             if segments[idx] - segments[idx+1] > max_length_seg:
-                max_length_seg = segments[idx] - segments[idx+1]
+                max_length_seg = segments[idx+1] - segments[idx]
                 max_length_seg_idx = idx
-        mean, last_ci = calculate_mean_and_ci(data[segments[max_length_seg_idx]:segments[max_length_seg_idx+1]])     
+        mean, last_ci = calculate_mean_and_ci(data[segments[max_length_seg_idx]:segments[max_length_seg_idx+1]])
+        stable_segments.append((segments[max_length_seg_idx-1], segments[max_length_seg_idx+1]))   
     else:
         mean, last_ci = calculate_mean_and_ci(data[segments[-2]:segments[-1]])
     
@@ -233,11 +235,15 @@ def find_stable_segment(data, segments):
         else:
             unstable_segments.append((segments[i], segments[i+1]))
     is_consistent = True
-    if start_stabel_range != end_stabel_range:
+    if  max(segments)!=end_stabel_range and len(stable_segments)>0:
+        #the final segment is not stable
+        is_consistent = False
+    if start_stabel_range != end_stabel_range and is_consistent:
         for seg in unstable_segments:
-            if seg[0] < end_stabel_range and seg[0] > start_stabel_range:
+            if (seg[0] < end_stabel_range and seg[0] > start_stabel_range) :
                 is_consistent = False
-                
+
+    stable_segments = sorted(stable_segments, key=lambda x: x[0], reverse=True)
     return stable_segments, is_consistent
 
 if __name__ == "__main__":
