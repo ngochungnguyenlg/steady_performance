@@ -204,6 +204,7 @@ def is_within_tolerance(last_mean, last_ci, new_mean, new_ci, tolerance=0.05):
 def find_stable_segment(data, segments):
     """Find stable segments based on the 5% tolerance on the CI of the mean."""
     stable_segments = []
+    unstable_segments = []
     if len(segments) < 2:
         return stable_segments
     if config["using_last_stable_segmet"]==False:
@@ -218,14 +219,26 @@ def find_stable_segment(data, segments):
     else:
         mean, last_ci = calculate_mean_and_ci(data[segments[-2]:segments[-1]])
     
+    start_stabel_range = 0
+    end_stabel_range = 0
     for i in range(len(segments) - 2, -1, -1):
         segment_data = data[segments[i]:segments[i+1]]
         last_mean, ci = calculate_mean_and_ci(segment_data)
         
         if is_within_tolerance(mean, ci, last_mean,last_ci):
             stable_segments.append((segments[i], segments[i+1]))
-
-    return stable_segments
+            start_stabel_range = segments[i]
+            if end_stabel_range < segments[i+1]:
+                end_stabel_range = segments[i+1]
+        else:
+            unstable_segments.append((segments[i], segments[i+1]))
+    is_consistent = True
+    if start_stabel_range != end_stabel_range:
+        for seg in unstable_segments:
+            if seg[0] < end_stabel_range and seg[0] > start_stabel_range:
+                is_consistent = False
+                
+    return stable_segments, is_consistent
 
 if __name__ == "__main__":
     np.random.seed(0)

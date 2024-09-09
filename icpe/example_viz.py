@@ -112,13 +112,10 @@ class Benchmark:
         numper_change_point_optimize = len(algo.predict(pen=elbow))-1
         #using elbow to find best segments
         segs = algo.predict(pen=elbow)
-        stable = find_stable_segment(fil_fork_data, segs)
+        stable, isconsitent = find_stable_segment(fil_fork_data, segs)
         
-        total_seg = len(segs)-1
         stable_seg_n = len(stable)
-        isconsitent = True
-        if total_seg - stable_seg_n >1:
-            isconsitent = False
+        
         if visualize:
             self.lock.acquire()
             if not os.path.exists(figs):
