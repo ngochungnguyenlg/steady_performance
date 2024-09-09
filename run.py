@@ -20,6 +20,7 @@ def parser_input():
     parser.add_argument(
         '--rlink', 
         type=str, 
+        nargs='+',
         default="./icpe/benchmarks_revision.csv",
     )
     
@@ -52,23 +53,26 @@ def parser_input():
 def run_data_analysis(args):
     analysis_data(
         data_dir=args.dlink,
-        resvision=args.rlink,
+        resvision=args.rlink[0],
         action = args.action,
         num_worker=args.nworker,
         range_data=args.range
         )
 
 def run_result_analysis(args):
+    
     if args.action == "rq1":
-        research_question_1(args.dlink, args.rlink)
+        research_question_1(args.rlink[0], args.dlink)
     elif args.action == "rq2":
-        research_question_2(args.dlink, args.rlink)
+        research_question_2(args.rlink[0], args.dlink)
     elif args.action == "rq3":
-        research_question_3(args.dlink, args.rlink)
+        research_question_3(args.rlink[0], args.dlink)
     elif args.action == "rq4":
-        research_question_4(args.dlink, args.rlink)
+        research_question_4(args.rlink[0], args.dlink)
     elif args.action == "rq5":
-        research_question_5(args.dlink, args.rlink)
+        research_question_5(args.rlink[0], args.dlink)
+    elif args.action == "rq6":
+        research_question_6(args.rlink, args.dlink)
     else:
         print("wrong selection !!!")
 
