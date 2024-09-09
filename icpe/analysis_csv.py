@@ -30,9 +30,9 @@ class survey_result:
         #steady percent, start steady point, is_consistent, is_stable (has aleast a steady seg)
         return list(cell[0]), list(cell[1]), list(cell[2]), list(cell[3])
     
-    def draw_table_heat_map(self, data, name):
+    def draw_table_heat_map(self, data, name, size = (6, 10)):
         df = pd.DataFrame(data, index=self.methods)
-        plt.figure(figsize=(6, 10))  
+        plt.figure(figsize=size)  
         ax = sns.heatmap(df, 
                         annot=True, 
                         cmap='Greys', 
@@ -98,23 +98,74 @@ class survey_result:
         self.draw_table_heat_map(heat_map_table_data, "./figs/fig6b.png")
         self.draw_table_heat_map(heat_map_table_data_6a,"./figs/fig6a.png")
         self.draw_f8(box_plot_start_point)
+    
+    def quenstion_6(self, csv_link_no_last):
+        df = self.df.copy()
+        df_no_last = pd.read_csv(csv_link_no_last)
+                
+        results = {}        
+        heat_map_table_data ={"Apply last": [], "Not apply last":[],
+                              "last":[], "no last" : []
+                              }
+        for method in self.methods:
+            method_result = df[df["Benchmark"].str.contains(method)]
+            method_result_no_last = df_no_last[df_no_last["Benchmark"].str.contains(method)]
+            measurement_result = []
+            start_point = []
+            
+            stable_per_performance_last = 0
+            stable_per_performance_no_last = 0
+            is_last = 0
+            for idx, cel in enumerate(method_result["Steady Percentage"]):
+                steady_percentage, steady_point, is_steadies, is_lasts =  self.detach_rq1_result_cell(cel)
+                stable_per_performance_last+=np.mean(steady_percentage)
+                if idx < len(method_result_no_last):
+                    steady_percentage_no_last, steady_point_no_last, is_steadies_no_last, is_lasts_no_last =  self.detach_rq1_result_cell(method_result_no_last.iloc[idx,1])
+                    stable_per_performance_no_last +=np.mean(steady_percentage_no_last)
+                    for last in is_lasts_no_last:
+                        if last:
+                            is_last += 1
+            
+                start_point+= steady_point
+            if len(method_result["Steady Percentage"]) >0:
+                heat_map_table_data["Apply last"].append(100*stable_per_performance_last/len(method_result["Steady Percentage"]))
+            else:
+                heat_map_table_data["Apply last"].append(0)
+            
+            if len(method_result_no_last["Steady Percentage"]) >0:
+                heat_map_table_data["Not apply last"].append(100*stable_per_performance_no_last/len(method_result_no_last["Steady Percentage"]))
+                heat_map_table_data["last"].append(100* is_last/(len(self.methods)*len(method_result_no_last["Steady Percentage"])))
+                heat_map_table_data["no last"].append(100 - 100* is_last/(len(self.methods)*len(method_result_no_last["Steady Percentage"])))
+            else:
+                heat_map_table_data["last"].append(0)
+                heat_map_table_data["no last"].append(0)
+                
+            results[method] = measurement_result
+        
+        self.draw_table_heat_map(heat_map_table_data, "./figs/compare_last_stable.png", size = (8, 10))
+    
 
-def research_question_1(raw_data_link, csv_link=config["output_dir"]):
+def research_question_1(csv_link=config["output_dir"], raw_data_link='.'):
     s = survey_result(csv_link, raw_data_link = raw_data_link)
     s.question_number_one()
         
-def research_question_2():
+def research_question_2(csv_link=config["output_dir"], raw_data_link='.'):
     raise NotImplementedError("This method is not implemented")
 
-def research_question_3():
+def research_question_3(csv_link=config["output_dir"], raw_data_link='.'):
     raise NotImplementedError("This method is not implemented")
 
-def research_question_4():
+def research_question_4(csv_link=config["output_dir"], raw_data_link='.'):
     raise NotImplementedError("This method is not implemented")
 
-def research_question_5():
-    raise NotImplementedError("This method is not implemented")     
-        
+def research_question_5(csv_link=config["output_dir"], raw_data_link='.'):
+    raise NotImplementedError("This method is not implemented")  
+
+def research_question_6(csv_link: list = [], raw_data_link='.'):
+    print(csv_link)
+    s = survey_result(csv_link[0], raw_data_link = raw_data_link)
+    s.quenstion_6(csv_link[1])
+    
 if __name__ == "__main__":
     s = survey_result(csv_link="./result.csv", raw_data_link="./icpe-data-challenge-jmh-main/timeseries")
     s.question_number_one()
