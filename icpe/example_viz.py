@@ -65,7 +65,7 @@ class Benchmark:
     def point_out_steady(self, fork_idx, visualize = config["visualize"], min_p=4, max_p=1000, min_size=100, jump=100, max_iterator=200, method='l2'):
         mean = np.mean(self.get_measurements()[fork_idx])
         exponent_10 = math.floor(math.log10(mean))
-        fork_data= np.array(self.get_measurements()[fork_idx])*(10/(10**exponent_10))
+        fork_data= np.array(self.get_measurements()[fork_idx])*(1/(10**exponent_10))
         fil_fork_data = filter_outliers(fork_data, window_size=200)
         fil_fork_data=fil_fork_data.flatten()
         if len(fil_fork_data) == 0:

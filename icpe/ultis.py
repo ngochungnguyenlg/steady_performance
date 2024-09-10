@@ -207,7 +207,7 @@ def find_stable_segment(data, segments):
     unstable_segments = []
     segments = sorted(segments)
 
-    print(segments)
+    print("--->",segments, len(data))
     if len(segments) <2:
         return [(0, segments[0])], segments[0] >500
     elif len(segments)==2:
@@ -239,8 +239,8 @@ def find_stable_segment(data, segments):
         else:
             unstable_segments.append((segments[i], segments[i+1]))
     is_steady = True
-    print("--->", abs(segments[-1] - segments[-2]), abs(segments[-1] - segments[-2]) < 500 and config["using_last_stable_segmet"])
-    if abs(segments[-1] - segments[-2]) < 500 and config["using_last_stable_segmet"]:
+    print("--->", abs(segments[-1] - segments[-2]), abs(segments[-1] - segments[-2]) <= 500 and config["using_last_stable_segmet"])
+    if abs(segments[-1] - segments[-2]) <= 500 and config["using_last_stable_segmet"]:
         is_steady=False
     elif  not config["using_last_stable_segmet"] and abs(segments[max_length_seg_idx+1]-segments[max_length_seg_idx])<500:
         is_steady=False
