@@ -41,17 +41,17 @@ python run.py -i data --rlink "./icpe/benchmarks_revision.csv" --dlink ".icpe/ti
 ```
 If you action equal to debug, then it will run one by one. Someone can also config visual studio code debug configs as:
 ```sh
-    {
-        "name": "Python: Debug1 run.py",
-        "type": "python",
-        "request": "launch",
-        "program": "${workspaceFolder}/run.py", 
-        "args": [
-            "-i", "data",
-            "--action", "debug",
-        ],
-        "console": "integratedTerminal"
-        }
+{
+    "name": "Python: Debug1 run.py",
+    "type": "python",
+    "request": "launch",
+    "program": "${workspaceFolder}/run.py", 
+    "args": [
+        "-i", "data",
+        "--action", "debug",
+    ],
+    "console": "integratedTerminal"
+    }
 ```
 
 For result analysis:
