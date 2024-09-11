@@ -1,23 +1,28 @@
 import numpy as np
 from icpe.config import *
+import ruptures as rpt
 
 def estimate_warmup_time(fork_m, w, wi):
-        wt = 0
-        sit = 0
-        sic = 0
-        for e in fork_m:
-            ni = int(e/100)
-            it = ni*e
-            sit += it
-            if sit >w:
-                wt += sit
-                sit = 0
-                sic += 1
-            if sic >= wi:
-                break
-        return wt
+    #this algorithm is from the paper to detect warmup time
+    #algorithm 1.
+    wt = 0
+    sit = 0
+    sic = 0
+    for e in fork_m:
+        ni = int(e/100)
+        it = ni*e
+        sit += it
+        if sit >w:
+            wt += sit
+            sit = 0
+            sic += 1
+        if sic >= wi:
+            break
+    return wt
 
 def select_performance_measurements(wt, r, i, M):
+    #This algorithm is from the paper to detect M^{conf}.
+    #algorithm 2.
     sit = 0
     sic = 0
     t = 0
@@ -69,8 +74,6 @@ def filter_outliers(data, window_size=200):
     filtered_data = np.setdiff1d(np.arange(len(data)), list(outliers))
     
     return data[filtered_data]
-
-import ruptures as rpt
 
 def calculate_segs_cost(tau, penalty, model):
     tau = [0] + tau
@@ -214,5 +217,4 @@ if __name__ == "__main__":
     for beta, segments in segmentations.items():
         for cp in segments:
             plt.axvline(x=cp, color='r', linestyle='--')
-            
     plt.show()
