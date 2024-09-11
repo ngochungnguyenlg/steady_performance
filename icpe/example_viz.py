@@ -21,7 +21,6 @@ import math
 from icpe.config import config
 from icpe.crops import *
 
-figs = "./figs"
 class Benchmark:
     """Measurements from a single benchmark"""
 
@@ -70,7 +69,6 @@ class Benchmark:
         fil_fork_data=fil_fork_data.flatten()
         if len(fil_fork_data) == 0:
             return [], 0, 0
-        # segmentations = crops_algorithm(fil_fork_data, min_p, max_p, method=method, min_size=min_size, jump=jump, max_iterator=max_iterator)
         segmentations = pelt_crops(data=fil_fork_data, beta_min=min_p, beta_max=max_p, max_iterations=max_iterator, jump=jump, min_size=min_size, method=method)
         change_points = []
         n_change_points = []
@@ -113,13 +111,9 @@ class Benchmark:
         #using elbow to find best segments
         segs = algo.predict(pen=elbow)
         stable, isconsitent = find_stable_segment(fil_fork_data, segs)
-        
-        stable_seg_n = len(stable)
-        
+                
         if visualize:
             self.lock.acquire()
-            if not os.path.exists(figs):
-                os.makedirs(figs)
             plt.figure(figsize=(10, 6))
             if elbow!=None:
                 try:
@@ -131,14 +125,14 @@ class Benchmark:
             plt.xlabel('Number of Changepoints')
             plt.ylabel('Penalty')
             plt.title('Penalty vs Number of Changepoints')
-            plt.savefig(figs + "/"+ str(fork_idx)+"_fig5.png", dpi=300)                  
+            plt.savefig(config['figs'] + "/"+ str(fork_idx)+"_fig5.png", dpi=300)                  
             plt.close()
             plt.plot(fil_fork_data)
             
             for cp in segs:
                 plt.axvline(x=cp, color='r', linestyle='--')
             
-            plt.savefig(figs + "/"+ str(fork_idx)+"_fig1.png", dpi=300)
+            plt.savefig(config['figs'] + "/"+ str(fork_idx)+"_fig1.png", dpi=300)
             plt.close()
             self.lock.release()
         return stable, isconsitent, len(fil_fork_data)
@@ -207,9 +201,6 @@ class Benchmark:
             store_start_stable_point.append(start_stable_point)
             store_is_steady.append(is_steady)
             store_is_last.append(is_last)
-
-        # average_percent = np.mean(store_stable_percent)
-        # average_start_point = np.mean(store_start_stable_point)
         return store_stable_percent, store_start_stable_point, store_is_steady, store_is_last
 
         
@@ -319,7 +310,6 @@ def analysis_data(data_dir, resvision, action, num_worker, range_data=[]):
         else:
             benchmarks = get_benchmarks(data_dir)
         main_processes(benchmarks, num_worker)
-    
             
 if __name__ == "__main__":
     DATA_DIR = './icpe/timeseries'

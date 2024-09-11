@@ -6,12 +6,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
-# import scienceplots
+import scienceplots
 from icpe.config import config
-# matplotlib.rcParams['font.size']=12.5
-# plt.style.use(["science", "ieee"])
+plt.style.use(["science", "ieee"])
 import matplotlib
-matplotlib.rcParams.update({'font.size': 12})
+matplotlib.rcParams['font.size']=12
+
+# matplotlib.rcParams.update({'font.size': 12})
 
 class survey_result:
     def __init__(self, csv_link = "result.csv", raw_data_link = "timeseries"):
@@ -57,7 +58,7 @@ class survey_result:
         plt.yscale('log')
         plt.ylim(0.1, None)
         plt.ylabel("Time to reach the steady state (sec), (log scale)")
-        plt.savefig("./figs/fig.8.png", dpi=300)
+        plt.savefig(config['figs']+"/fig.8.png", dpi=300)
         plt.close()
         
     def question_number_one(self):
@@ -95,8 +96,8 @@ class survey_result:
             results[method] = measurement_result
             box_plot_start_point.append(np.array(start_point))
         
-        self.draw_table_heat_map(heat_map_table_data, "./figs/fig6b.png")
-        self.draw_table_heat_map(heat_map_table_data_6a,"./figs/fig6a.png")
+        self.draw_table_heat_map(heat_map_table_data, config['figs']+"/fig6b.png")
+        self.draw_table_heat_map(heat_map_table_data_6a,config['figs']+"/fig6a.png")
         self.draw_f8(box_plot_start_point)
     
     def quenstion_6(self, csv_link_no_last):
@@ -142,7 +143,7 @@ class survey_result:
                 
             results[method] = measurement_result
         
-        self.draw_table_heat_map(heat_map_table_data, "./figs/compare_last_stable.png", size = (8, 10))
+        self.draw_table_heat_map(heat_map_table_data, config['figs']+"/compare_last_stable.png", size = (8, 10))
     
 
 def research_question_1(csv_link=config["output_dir"], raw_data_link='.'):

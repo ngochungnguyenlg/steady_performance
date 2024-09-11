@@ -13,9 +13,7 @@ def pelt_for_crops(beta: float, algo : Pelt) -> Tuple[float, List[float]]:
     for idx, seg in enumerate(result_, start=1):
         if idx < len(result_):
             sum_cost += algo.cost.error(result_[idx-1], result_[idx]-1)
-    
     return sum_cost, result
-
 class CropsClass:
     def __init__(self, method: Callable[[float], Tuple[float, List[float]]], betas: List[float], algo: Pelt):
         self.method = method
@@ -136,10 +134,7 @@ def check_crops_arguments(method, beta_min, beta_max, max_iterations):
 def pelt_crops(data, beta_min, beta_max, max_iterations=20, jump= 5, min_size =2, method='l1'):
     algo = Pelt(model=method, min_size=min_size, jump=jump).fit(data)
     result = crops(pelt_for_crops, beta_min, beta_max, max_iterations, algo)
-    # print_summary(result)
     data = np.array(data)
-    # df_data = pd.DataFrame({'x': range(len(data)), 'y': data})
-    # plot(result, data=df_data)
     df = segmentations(result)
     if str(type(df)).find("None")!=-1:
         pen = 15*np.log10(len(data))
@@ -153,6 +148,7 @@ def pelt_crops(data, beta_min, beta_max, max_iterations=20, jump= 5, min_size =2
     cleaned_dict = {k: [v for v in lst if pd.notna(v)] for k, lst in df_dict.items()}
     return cleaned_dict
 if __name__ == "__main__":
+    #test
     N=100
     np.random.seed(1)
     data = np.concatenate([

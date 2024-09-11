@@ -38,33 +38,19 @@ def select_performance_measurements(wt, r, i, M):
 
 
 def filter_outliers(data, window_size=200):
-    """
-    Lọc các outlier từ dữ liệu sử dụng cửa sổ trượt (sliding window) 
-    và điều kiện median ± 3 × (99%ile − 1%ile).
-    
-    Args:
-    - data (list hoặc np.array): Dữ liệu đầu vào.
-    - window_size (int): Kích thước cửa sổ trượt.
-
-    Returns:
-    - np.array: Dữ liệu đã được lọc bỏ các outlier.
-    """
     data = np.array(data)
-    window_size = min(window_size, len(data))  # Đảm bảo window_size không lớn hơn độ dài của data
+    window_size = min(window_size, len(data))  
     noops = np.ceil(0.1 / np.mean(data))
     skip = int(np.ceil(window_size / np.log1p(noops)))
 
-    # Khởi tạo danh sách các chỉ số ban đầu, bỏ qua những phần đầu theo skip
     indexes = list(range(skip, len(data)))
     outliers = set()
 
     def sliding_window(seq, window_size):
-        """Hàm hỗ trợ để tạo ra các cửa sổ trượt từ danh sách các chỉ số."""
         for i in range(len(seq) - window_size + 1):
             yield seq[i:i + window_size]
 
     def create_isoutlier(series, window):
-        """Tạo hàm để xác định xem một giá trị có phải là outlier hay không."""
         series_ = series[window]
         median = np.median(series_)
         p1, p99 = [np.quantile(series_, q) for q in [0.01, 0.99]]
@@ -76,46 +62,13 @@ def filter_outliers(data, window_size=200):
 
         return _isoutlier
 
-    # Kiểm tra từng cửa sổ và xác định outliers
     for window in sliding_window(indexes, window_size):
         isoutlier = create_isoutlier(data, window)
         outliers.update([i for i in window if isoutlier(i)])
 
-    # Lọc bỏ các outlier từ dữ liệu
     filtered_data = np.setdiff1d(np.arange(len(data)), list(outliers))
     
     return data[filtered_data]
-
-
-# def filter_outliers(data, window_size=200):
-#     """
-#     using median ± 3 × (99%ile − 1%ile)
-#     Args:
-#     - data (list or np.array): input data.
-#     - window_size (int): size of a slicing windown
-
-#     Returns:
-#     - np.array: filter data.
-#     """
-#     data = np.array(data)
-#     filtered_data = []
-    
-#     for i in range(len(data)):
-#         start = max(0, i - window_size // 2)
-#         end = min(len(data), i + window_size // 2 + 1)
-        
-#         window = data[start:end]
-        
-#         median = np.median(window)
-#         p99 = np.percentile(window, 99)
-#         p1 = np.percentile(window, 1)
-#         threshold = 3 * (p99 - p1)
-        
-#         if abs(data[i] - median) <= threshold:
-#             filtered_data.append(data[i])
-    
-#     return np.array(filtered_data)
-
 
 import ruptures as rpt
 
@@ -152,7 +105,6 @@ def crops_algorithm(data, beta_min, beta_max, method = "l2", jump=5, min_size=2,
         print (e, data)
     n= max_iterator
     while beta_set and n>0:
-        # idx = np.random.randint(0, len(beta_set))
         beta0, beta1 = beta_set.pop()
         try:
             segs_0 = run_pelt(beta0)
@@ -189,7 +141,6 @@ def calculate_mean_and_ci(data):
 
 def is_within_tolerance(last_mean, last_ci, new_mean, new_ci, tolerance=0.05):
     """Check if mean2 is within the tolerance of mean1."""
-    
     last_low = last_mean-last_ci
     last_up = last_mean+last_ci
     
@@ -254,14 +205,12 @@ if __name__ == "__main__":
     noise = np.random.uniform(-3,3,5)
     data = np.concatenate([np.random.normal(loc+noise[loc], 0.5, size=N[loc]) for loc in range(5)], axis=0)
     data = data.flatten()
-    # Chạy thuật toán CROPS
     beta_min = 4
     beta_max = 10^5
     segmentations = crops_algorithm(data, beta_min, beta_max, max_iterator=10, method="l1")
 
     import matplotlib.pyplot as plt
     plt.plot(data)
-    # In kết quả
     for beta, segments in segmentations.items():
         for cp in segments:
             plt.axvline(x=cp, color='r', linestyle='--')
