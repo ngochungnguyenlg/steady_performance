@@ -11,17 +11,17 @@ Questions about the dataset can be asked by opening issues on this repository, o
 
 ## Usage example
 
-In the python script [example_viz.py](example_viz.py) you can find an example of how to read the data and generate a simple plot for a random benchmark in the dataset. The script requires `pandas` and `matplotlib`:
+In the Python script [example_viz.py](example_viz.py) you can find an example of how to read the data and generate a simple plot for a random benchmark in the dataset. The script requires `pandas` and `matplotlib`:
 ```
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
-For analysis data:
+## For analysis data:
 
 In /icpe/config.py
 
-set the configs as your target runing:
+set the configs as your target running:
 ```Python
 config = {
     "using_last_stable_segmet": True, # using when apply paper strategy, otherwise using the longest segment for classifying steady fork.
@@ -54,7 +54,8 @@ If you action equal to debug, then it will run one by one. Someone can also conf
     }
 ```
 
-For result analysis:
+## For result analysis:
+After getting the data analysis result, you can run the below code to visualize these result.
 ```
 python run.py -i result -rlink "your revision/or result repo" dlink "your data link" --action "your action"
 ```
@@ -64,7 +65,7 @@ Example
 ```sh
 python run.py -i result --action rq1 --rlink ./csv/output.csv
 ```
-2. Plot figures 4 in the report (extra part).
+2. Plot Figure 4 in the report (extra part).
 ```sh
 python run.py -i result --action rq6 --rlink ./csv/output.csv ./csv/output_non_last_steady.csv
 ```
